@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private var passwordEditText: EditText? = null
     private var createNewAccButton: Button? = null
     private var loginButton: Button? = null
+    private var resetPasswordTextView: TextView? = null
 
     private var firebaseAuth: FirebaseAuth? = null
 
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         createNewAccButton = findViewById<Button>(R.id.createAccButton)
         emailEditText = findViewById<EditText>(R.id.emailEditTextLogin)
         passwordEditText = findViewById<EditText>(R.id.passwordEditTextLogin)
+        resetPasswordTextView = findViewById<TextView>(R.id.resetPasswordtextView)
 
         firebaseAuth = FirebaseAuth.getInstance()
 
@@ -43,6 +45,35 @@ class MainActivity : AppCompatActivity() {
         })
         createNewAccButton?.setOnClickListener(View.OnClickListener {
             startActivity(Intent(this@MainActivity, CreateAccount::class.java))
+
+        })
+
+        resetPasswordTextView?.setOnClickListener({
+
+            val dialog = Dialog(this)
+            dialog.setContentView(R.layout.reset_password_dialog)
+
+            val emailEditTextDialog:EditText? = dialog.findViewById<EditText>(R.id.emailEditTextDialog)
+            val resetButton:Button? = dialog.findViewById<Button>(R.id.resetPasswordButton)
+
+
+            dialog.show()
+
+
+            resetButton?.setOnClickListener({
+                var emailResetPassword = emailEditTextDialog?.text.toString().trim()
+                if (TextUtils.isEmpty(emailResetPassword))
+                    Toast.makeText(
+                        applicationContext,
+                        "Please enter your email.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                else {
+                    resetPassword(emailResetPassword)
+                    dialog.cancel()
+                }
+            })
+
 
         })
 
@@ -82,6 +113,32 @@ class MainActivity : AppCompatActivity() {
 
                 })
         }
+    }
+
+    private fun resetPassword(email: String) {
+
+        firebaseAuth?.sendPasswordResetEmail(email)
+            ?.addOnCompleteListener(object : OnCompleteListener<Void> {
+                override fun onComplete(task: Task<Void>) {
+                    if (task.isSuccessful) {
+                        Toast.makeText(
+                            applicationContext,
+                            "Reset successful, check your email.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    } else {
+                        var error = task.exception?.message
+                        Toast.makeText(
+                            applicationContext,
+                            "Error: " + error,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+            })
+
     }
 
 
